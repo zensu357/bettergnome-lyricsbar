@@ -89,9 +89,12 @@ describe('BetterLyricsProvider source switching', () => {
     const callback = vi.fn();
     provider.lookup(query, callback);
 
-    expect(sentUrls).toHaveLength(2);
-    expect(sentUrls[0]).toContain('lrclib.net');
-    expect(sentUrls[1]).toContain('lrclib.net');
+    expect(sentUrls).toHaveLength(3);
+    expect(sentUrls[0]).toContain('lrclib.net/api/get');
+    expect(sentUrls[1]).toContain('artist_name=');
+    // a miss on the artist+title search falls through to the title-only search
+    expect(sentUrls[2]).toContain('track_name=');
+    expect(sentUrls[2]).not.toContain('artist_name=');
     expect(callback).toHaveBeenCalledWith({ kind: 'not-found' });
   });
 

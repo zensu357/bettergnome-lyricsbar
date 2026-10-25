@@ -94,11 +94,10 @@ export class LrclibProvider {
         return;
       }
 
-      if (providerResult.kind !== 'plain' && providerResult.kind !== 'not-found') {
-        callback(providerResult);
-        return;
-      }
-
+      // Transient exact-lookup failures (5xx rate limits, timeouts) must not
+      // skip the search fallback — it is a separate endpoint with separate
+      // throttling. When the fallback also misses, the original error is
+      // reported so the caller does not cache a false negative.
       this.#lookupSyncedSearchFallback(query, providerResult, callback);
     });
   }

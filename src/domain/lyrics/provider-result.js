@@ -156,8 +156,14 @@ function scoreDuration(resultDurationMs, queryDurationMs) {
   }
 
   const deltaMs = Math.abs(resultDurationMs - queryDurationMs);
-  if (deltaMs > 3000) {
+  // This is the fuzzy search fallback: artist and title already matched, so a
+  // moderate duration gap only means a different release of the same song.
+  // Reject only clearly different recordings (edit vs extended, live sets).
+  if (deltaMs > 30000) {
     return null;
+  }
+  if (deltaMs > 3000) {
+    return 0;
   }
 
   return Math.max(0, 30 - Math.round(deltaMs / 100));
@@ -206,12 +212,15 @@ function normalizeComparable(value) {
     return '';
   }
 
+  // Keep letters and digits from every script: stripping to ASCII would
+  // reduce any CJK title/artist to an empty string and silently disable the
+  // whole search fallback for Chinese, Japanese and Korean songs.
   return value
     .normalize('NFKD')
     .toLowerCase()
     .replace(/[\u0300-\u036f]/gu, '')
     .replace(/&/gu, ' and ')
-    .replace(/[^a-z0-9]+/gu, ' ')
+    .replace(/[^\p{L}\p{N}]+/gu, ' ')
     .trim()
     .replace(/\s+/gu, ' ');
 }
